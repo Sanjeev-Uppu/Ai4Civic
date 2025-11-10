@@ -38,3 +38,4 @@ backend/src/main/resources/static/**
 # ---- OS junk ----
 ehthumbs.db
 
+backend/src/main/resources/application.properties
