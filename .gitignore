@@ -1,0 +1,40 @@
+# ---- General ----
+.DS_Store
+Thumbs.db
+*.log
+*.tmp
+
+# ---- Env / secrets ----
+.env
+.env.*
+
+# ---- Node / Frontend ----
+node_modules/
+dist/
+build/
+.vite/
+.cache/
+.sass-cache/
+coverage/
+*.tsbuildinfo
+
+# ---- Java / Spring Boot ----
+target/
+.gradle/
+.build/
+.mvn/wrapper/maven-wrapper.jar
+
+# ---- IDE ----
+.vscode/
+.idea/
+*.iml
+
+# ---- Project-specific generated stuff ----
+backend/uploads/
+backend/letters/
+backend/src/main/resources/static/**
+!backend/src/main/resources/static/.keep
+
+# ---- OS junk ----
+ehthumbs.db
+
