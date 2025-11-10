@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent } from "@/components/ui/card";
 import { Upload, X, Loader2 } from "lucide-react";
-import { toast } from "sonner";
+import { toast } from "@/components/ui/sonner";
 
 const complaintSchema = z.object({
   fullName: z.string().min(2, "Name must be at least 2 characters").max(100),
@@ -54,9 +54,7 @@ export function ComplaintForm({ onSuccess }: ComplaintFormProps) {
       }
       setImageFile(file);
       const reader = new FileReader();
-      reader.onloadend = () => {
-        setImagePreview(reader.result as string);
-      };
+      reader.onloadend = () => setImagePreview(reader.result as string);
       reader.readAsDataURL(file);
     }
   };
@@ -69,39 +67,45 @@ export function ComplaintForm({ onSuccess }: ComplaintFormProps) {
   const onSubmit = async (data: ComplaintFormData) => {
     setIsSubmitting(true);
     try {
-      const formData = new FormData();
-      
-      const complaintData = {
-        fullName: data.fullName,
+      // Use Vite proxy in dev; env var in prod
+      const apiBase = import.meta.env.DEV ? "" : (import.meta.env.VITE_API_URL ?? "");
+      const url = `${apiBase}/api/complaints`;
+
+      // Build JSON payload the backend maps to entity fields (name, not fullName)
+      const complaintPayload = {
+        name: data.fullName,
         email: data.email,
+        description: data.description,
         location: data.location,
         category: data.category,
         priority: data.priority,
-        description: data.description,
       };
 
-      formData.append("complaint", JSON.stringify(complaintData));
-      
+      // Controller expects:
+      //   complaint -> JSON string
+      //   image     -> file (optional)
+      const form = new FormData();
+      form.append("complaint", JSON.stringify(complaintPayload));
       if (imageFile) {
-        formData.append("image", imageFile);
+        form.append("image", imageFile);
       }
 
-      const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:8080";
-      const response = await fetch(`${apiUrl}/api/complaints`, {
-        method: "POST",
-        body: formData,
-      });
+      const res = await fetch(url, { method: "POST", body: form }); // do NOT set Content-Type
+      const text = await res.text().catch(() => "");
 
-      if (!response.ok) {
-        throw new Error("Failed to submit complaint");
+      if (!res.ok) throw new Error(text || `Request failed with ${res.status}`);
+
+      let result: any = {};
+      try {
+        result = text ? JSON.parse(text) : {};
+      } catch {
+        // non-JSON success is fine
       }
 
-      const result = await response.json();
-      
       toast.success("Complaint successfully registered!");
       reset();
       removeImage();
-      onSuccess(result.pdfPath);
+      onSuccess(result?.pdfPath);
     } catch (error) {
       console.error("Error submitting complaint:", error);
       toast.error("Failed to submit complaint. Please try again.");
@@ -164,7 +168,7 @@ export function ComplaintForm({ onSuccess }: ComplaintFormProps) {
           <div className="grid md:grid-cols-2 gap-6">
             <div className="space-y-2">
               <Label htmlFor="category">Category *</Label>
-              <Select value={category} onValueChange={(value) => setValue("category", value)}>
+              <Select value={category} onValueChange={(v) => setValue("category", v)}>
                 <SelectTrigger className={errors.category ? "border-destructive" : ""}>
                   <SelectValue placeholder="Select category" />
                 </SelectTrigger>
@@ -184,7 +188,7 @@ export function ComplaintForm({ onSuccess }: ComplaintFormProps) {
 
             <div className="space-y-2">
               <Label htmlFor="priority">Priority *</Label>
-              <Select value={priority} onValueChange={(value) => setValue("priority", value)}>
+              <Select value={priority} onValueChange={(v) => setValue("priority", v)}>
                 <SelectTrigger className={errors.priority ? "border-destructive" : ""}>
                   <SelectValue placeholder="Select priority" />
                 </SelectTrigger>
@@ -273,12 +277,7 @@ export function ComplaintForm({ onSuccess }: ComplaintFormProps) {
                 "Submit Complaint"
               )}
             </Button>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={handleReset}
-              disabled={isSubmitting}
-            >
+            <Button type="button" variant="outline" onClick={handleReset} disabled={isSubmitting}>
               Reset
             </Button>
           </div>

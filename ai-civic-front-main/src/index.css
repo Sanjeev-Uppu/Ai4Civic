@@ -2,9 +2,11 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
-All colors MUST be HSL.
-*/
+/* ===============================
+   🌈 AI4Civic Design System
+   - Light + Dark Theme
+   - Blue / Pink / Yellow / Parrot Green
+   =============================== */
 
 @layer base {
   :root {
@@ -20,7 +22,7 @@ All colors MUST be HSL.
     /* Primary: Beautiful Blue */
     --primary: 217 91% 60%;
     --primary-foreground: 0 0% 100%;
-    
+
     /* Secondary: Elegant Purple */
     --secondary: 262 83% 58%;
     --secondary-foreground: 0 0% 100%;
@@ -40,49 +42,70 @@ All colors MUST be HSL.
 
     --radius: 0.75rem;
 
-    /* Gradient tokens */
-    --gradient-start: 217 91% 60%;
-    --gradient-end: 262 83% 58%;
-    
-    /* Success */
+    /* Success color */
     --success: 142 76% 36%;
     --success-foreground: 0 0% 100%;
+
+    /* 🌈 Civic Palette Light Mode */
+    --civic-blue: 210 100% 56%;   /* Bright Blue */
+    --civic-pink: 338 100% 68%;   /* Hot Pink */
+    --civic-yellow: 45 100% 61%;  /* Soft Yellow */
+    --civic-green: 135 72% 60%;   /* Parrot Green */
+
+    /* Default Gradient (Blue → Green) */
+    --gradient-start: var(--civic-blue);
+    --gradient-end: var(--civic-green);
   }
 
+  /* ==================================
+     🌑 DARK THEME COLORS
+     More vibrant & visible on dark bg
+     ================================== */
   .dark {
-    --background: 222.2 47.4% 11.2%;
-    --foreground: 210 40% 98%;
+    --background: 222 47% 11%; /* Dark navy-gray */
+    --foreground: 0 0% 100%;
 
-    --card: 224 71% 4%;
-    --card-foreground: 210 40% 98%;
+    --card: 228 19% 15%;
+    --card-foreground: 0 0% 98%;
 
-    --popover: 224 71% 4%;
-    --popover-foreground: 210 40% 98%;
+    --popover: 228 19% 15%;
+    --popover-foreground: 0 0% 98%;
 
-    --primary: 217 91% 60%;
+    --primary: 217 91% 68%; /* Slightly brighter blue */
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 262 83% 58%;
+    --secondary: 262 90% 70%; /* Glowing purple */
     --secondary-foreground: 0 0% 100%;
 
-    --muted: 215 28% 17%;
-    --muted-foreground: 217.9 10.6% 64.9%;
+    --muted: 225 15% 18%;
+    --muted-foreground: 220 15% 70%;
 
-    --accent: 262 83% 58%;
+    --accent: 262 90% 70%;
     --accent-foreground: 0 0% 100%;
 
-    --destructive: 0 62.8% 30.6%;
+    --destructive: 0 80% 55%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 215 28% 17%;
-    --input: 215 28% 17%;
-    --ring: 217 91% 60%;
-    
-    --success: 142 76% 36%;
+    --border: 225 15% 18%;
+    --input: 225 15% 18%;
+    --ring: 217 91% 68%;
+
+    --success: 142 70% 45%;
     --success-foreground: 0 0% 100%;
+
+    /* 🌈 Civic Palette Dark Mode (more luminous) */
+    --civic-blue: 210 100% 65%;   /* Electric Blue */
+    --civic-pink: 338 100% 75%;   /* Neon Pink */
+    --civic-yellow: 48 100% 65%;  /* Bright Yellow */
+    --civic-green: 135 80% 60%;   /* Vibrant Parrot Green */
+
+    /* Slightly tweaked gradients for better contrast */
+    --gradient-start: var(--civic-pink);
+    --gradient-end: var(--civic-green);
   }
 }
 
+/* Base resets */
 @layer base {
   * {
     @apply border-border;
@@ -90,5 +113,49 @@ All colors MUST be HSL.
 
   body {
     @apply bg-background text-foreground;
+    transition: background-color 0.4s ease, color 0.4s ease;
+  }
+}
+
+/* ===============================
+   🌈 Gradient Utility Classes
+   =============================== */
+@layer utilities {
+  /* Blue → Parrot Green */
+  .bg-gradient-primary {
+    background-image: linear-gradient(
+      90deg,
+      hsl(var(--civic-blue)),
+      hsl(var(--civic-green))
+    );
+  }
+
+  /* Pink → Yellow */
+  .bg-gradient-accent {
+    background-image: linear-gradient(
+      90deg,
+      hsl(var(--civic-pink)),
+      hsl(var(--civic-yellow))
+    );
+  }
+
+  /* Multi: Blue → Pink → Yellow → Green */
+  .bg-gradient-civic-multi {
+    background-image: linear-gradient(
+      135deg,
+      hsl(var(--civic-blue)) 0%,
+      hsl(var(--civic-pink)) 33%,
+      hsl(var(--civic-yellow)) 66%,
+      hsl(var(--civic-green)) 100%
+    );
+  }
+
+  /* Gradient animation on hover (optional) */
+  .hover-glow {
+    transition: filter 0.3s ease;
+  }
+
+  .hover-glow:hover {
+    filter: brightness(1.15) saturate(1.2);
   }
 }

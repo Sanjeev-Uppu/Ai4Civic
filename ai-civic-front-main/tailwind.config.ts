@@ -2,18 +2,22 @@ import type { Config } from "tailwindcss";
 
 export default {
   darkMode: ["class"],
-  content: ["./pages/**/*.{ts,tsx}", "./components/**/*.{ts,tsx}", "./app/**/*.{ts,tsx}", "./src/**/*.{ts,tsx}"],
+  content: [
+    "./pages/**/*.{ts,tsx}",
+    "./components/**/*.{ts,tsx}",
+    "./app/**/*.{ts,tsx}",
+    "./src/**/*.{ts,tsx}",
+  ],
   prefix: "",
   theme: {
     container: {
       center: true,
       padding: "2rem",
-      screens: {
-        "2xl": "1400px",
-      },
+      screens: { "2xl": "1400px" },
     },
     extend: {
       colors: {
+        // existing design tokens driven by CSS variables
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",
@@ -55,32 +59,42 @@ export default {
           start: "hsl(var(--gradient-start))",
           end: "hsl(var(--gradient-end))",
         },
+
+        // 🔵💗💛🟩 Added civic palette (fixed hex)
+        civicBlue: "#1E90FF",
+        civicPink: "#FF5E9C",
+        civicYellow: "#FFD43B",
+        civicGreen: "#55E06C",
       },
+
+      // 🎨 Gradient utilities (use directly in className)
       backgroundImage: {
-        'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
-        'gradient-civic': 'linear-gradient(135deg, hsl(var(--gradient-start)) 0%, hsl(var(--gradient-end)) 100%)',
+        // keep your variable-driven gradients
+        "gradient-radial": "radial-gradient(var(--tw-gradient-stops))",
+        "gradient-civic":
+          "linear-gradient(135deg, hsl(var(--gradient-start)) 0%, hsl(var(--gradient-end)) 100%)",
+
+        // new, fixed palettes
+        "gradient-primary": "linear-gradient(90deg, #1E90FF, #55E06C)", // blue → parrot green
+        "gradient-accent": "linear-gradient(90deg, #FF5E9C, #FFD43B)", // pink → yellow
+        "gradient-civic-multi":
+          "linear-gradient(135deg, #1E90FF, #FF5E9C, #FFD43B, #55E06C)", // blue → pink → yellow → green
       },
+
       borderRadius: {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
       },
+
       keyframes: {
         "accordion-down": {
-          from: {
-            height: "0",
-          },
-          to: {
-            height: "var(--radix-accordion-content-height)",
-          },
+          from: { height: "0" },
+          to: { height: "var(--radix-accordion-content-height)" },
         },
         "accordion-up": {
-          from: {
-            height: "var(--radix-accordion-content-height)",
-          },
-          to: {
-            height: "0",
-          },
+          from: { height: "var(--radix-accordion-content-height)" },
+          to: { height: "0" },
         },
       },
       animation: {
