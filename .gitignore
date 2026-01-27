@@ -1,14 +1,21 @@
-# ---- General ----
+# ===============================
+# General
+# ===============================
 .DS_Store
 Thumbs.db
 *.log
 *.tmp
 
-# ---- Env / secrets ----
+# ===============================
+# Environment / Secrets
+# ===============================
 .env
 .env.*
+!*.example
 
-# ---- Node / Frontend ----
+# ===============================
+# Node / Frontend
+# ===============================
 node_modules/
 dist/
 build/
@@ -18,24 +25,41 @@ build/
 coverage/
 *.tsbuildinfo
 
-# ---- Java / Spring Boot ----
+# ===============================
+# Java / Spring Boot
+# ===============================
 target/
 .gradle/
 .build/
 .mvn/wrapper/maven-wrapper.jar
 
-# ---- IDE ----
+# ===============================
+# IDE / Editors
+# ===============================
 .vscode/
 .idea/
 *.iml
+*.classpath
+*.project
+.settings/
 
-# ---- Project-specific generated stuff ----
+# ===============================
+# Project-specific generated data
+# ===============================
 backend/uploads/
 backend/letters/
+
+# ===============================
+# Static resources
+# ===============================
 backend/src/main/resources/static/**
 !backend/src/main/resources/static/.keep
 
-# ---- OS junk ----
-ehthumbs.db
+# ===============================
+# Spring Boot config (IMPORTANT)
+# ===============================
+# Track default config
+!backend/src/main/resources/application.properties
 
-backend/src/main/resources/application.properties
+# Ignore environment-specific configs
+backend/src/main/resources/application-*.properties
