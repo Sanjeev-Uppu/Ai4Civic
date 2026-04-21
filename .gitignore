@@ -46,8 +46,8 @@ target/
 # ===============================
 # Project-specific generated data
 # ===============================
-backend/uploads/
-backend/letters/
+backend/uploads/*
+backend/letters/*
 
 # ===============================
 # Static resources
@@ -58,8 +58,9 @@ backend/src/main/resources/static/**
 # ===============================
 # Spring Boot config (IMPORTANT)
 # ===============================
-# Track default config
+# Track safe production config
 !backend/src/main/resources/application.properties
 
-# Ignore environment-specific configs
+# Ignore local/dev configs
+backend/src/main/resources/application-local.properties
 backend/src/main/resources/application-*.properties
