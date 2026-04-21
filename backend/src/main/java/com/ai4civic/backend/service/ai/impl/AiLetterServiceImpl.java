@@ -2,120 +2,131 @@ package com.ai4civic.backend.service.ai.impl;
 
 import com.ai4civic.backend.entity.Complaint;
 import com.ai4civic.backend.service.ai.AiLetterService;
-import org.springframework.ai.chat.prompt.Prompt;
-import org.springframework.ai.chat.messages.UserMessage;
-import org.springframework.ai.openai.OpenAiChatModel;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import org.springframework.util.Base64Utils;
+import org.springframework.web.reactive.function.client.WebClient;
 
-import java.io.File;
-import java.nio.file.Files;
+import java.time.Duration;
+import java.util.Date;
 
 @Service
 public class AiLetterServiceImpl implements AiLetterService {
 
-    @Autowired
-    private OpenAiChatModel chatModel;
+    private final WebClient webClient;
+    private final ObjectMapper mapper = new ObjectMapper();
+
+    @Value("${gemini.api.key}")
+    private String apiKey;
+
+    public AiLetterServiceImpl(WebClient.Builder builder) {
+        this.webClient = builder.baseUrl("https://generativelanguage.googleapis.com").build();
+    }
 
     @Override
     public String generateLetter(Complaint complaint) {
-        String imageContext = "";
 
-        try {
-            if (complaint.getImagePath() != null) {
-                File imageFile = new File(complaint.getImagePath());
-                if (imageFile.exists()) {
-                    byte[] imageBytes = Files.readAllBytes(imageFile.toPath());
-                    String base64 = Base64Utils.encodeToString(imageBytes);
-
-                    String visionPrompt = """
-                            Analyze the image provided (base64 format). 
-                            Describe what civic issue or environmental situation it likely represents 
-                            in 1–2 lines of plain English (e.g., waterlogging, pollution, damaged roads, waste, etc.).
-                            """;
-
-                    String fullPrompt = visionPrompt + "\nBase64 Image: " + base64;
-
-                    // Send image context to GPT-4o Vision
-                    Prompt prompt = new Prompt(new UserMessage(fullPrompt));
-                    String visionDescription = chatModel.call(prompt).getResult().getOutput().getContent();
-
-                    imageContext = "\n\nAI Image Analysis:\n" + visionDescription.trim();
-                }
-            }
-        } catch (Exception e) {
-            imageContext = "\n\n(Note: Image could not be analyzed automatically.)";
-            System.err.println("⚠️ AI Vision error: " + e.getMessage());
-        }
-
-        // Now generate the main letter
         String promptText = String.format("""
-                You are an AI that writes formal complaint letters for civic issues.
+                You are an AI assistant that writes professional civic complaint letters.
 
-                User Details:
-                - Name: %s
-                - Email: %s
-                - Location: %s
-                - Category: %s
-                - Priority: %s
+                Citizen Information
+                Name: %s
+                Email: %s
+                Location: %s
+                Category: %s
+                Priority: %s
 
                 Complaint Description:
                 %s
 
-                Additional Context:
-                %s
-
-                Write a complete formal letter addressed to the local authorities with:
-                - A professional subject
-                - Polite tone
-                - Problem description
-                - A call to action
-                - Proper closing and signature.
+                Write a formal complaint letter addressed to the appropriate local authority.
+                The letter must include:
+                - Subject
+                - Greeting
+                - Problem explanation
+                - Request for action
+                - Closing with citizen details
                 """,
                 complaint.getName(),
                 complaint.getEmail(),
                 complaint.getLocation(),
                 complaint.getCategory(),
                 complaint.getPriority(),
-                complaint.getDescription(),
-                imageContext
+                complaint.getDescription()
         );
 
         try {
-            Prompt finalPrompt = new Prompt(new UserMessage(promptText));
-            return chatModel.call(finalPrompt).getResult().getOutput().getContent();
+
+            // ✅ Proper JSON creation (no manual escaping issues)
+            String requestBody = mapper.writeValueAsString(
+                    new java.util.HashMap<>() {{
+                        put("contents", new Object[]{
+                                new java.util.HashMap<>() {{
+                                    put("parts", new Object[]{
+                                            new java.util.HashMap<>() {{
+                                                put("text", promptText);
+                                            }}
+                                    });
+                                }}
+                        });
+                    }}
+            );
+
+            String response = webClient.post()
+                    // ✅ FIXED MODEL
+                    .uri("/v1/models/gemini-1.5-flash-latest:generateContent?key=" + apiKey)
+                    .header("Content-Type", "application/json")
+                    .bodyValue(requestBody)
+                    .retrieve()
+                    .bodyToMono(String.class)
+                    .timeout(Duration.ofSeconds(10))
+                    .block();
+
+            // ✅ Extract ONLY the generated letter
+            JsonNode json = mapper.readTree(response);
+
+            return json
+                    .path("candidates")
+                    .get(0)
+                    .path("content")
+                    .path("parts")
+                    .get(0)
+                    .path("text")
+                    .asText();
 
         } catch (Exception e) {
-            System.err.println("⚠️ Letter generation fallback due to error: " + e.getMessage());
+
+            System.err.println("Gemini API error: " + e.getMessage());
             return fallbackLetter(complaint);
         }
     }
 
+    // ✅ Backup if API fails
     private String fallbackLetter(Complaint c) {
+
         return String.format("""
                 Date: %tD
-
-                To Whom It May Concern,
 
                 Subject: Complaint regarding %s
 
                 Dear Sir/Madam,
 
-                I am writing to bring to your attention an issue faced in %s under the category of %s.
-                %s
+                I am writing to bring to your attention an issue in %s under the category of %s.
 
-                Kindly take the necessary actions to resolve this issue at the earliest.
+                %s
 
                 Sincerely,
                 %s
                 (%s)
-                """, new java.util.Date(),
-                c.getDescription(),
+                """,
+                new Date(),
+                c.getCategory(),
                 c.getLocation(),
                 c.getCategory(),
                 c.getDescription(),
                 c.getName(),
-                c.getEmail());
+                c.getEmail()
+        );
     }
 }
