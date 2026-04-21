@@ -6,4 +6,4 @@ COPY . .
 
 RUN mvn clean package -DskipTests
 
-CMD ["sh", "-c", "java -jar target/*.jar"]
+CMD ["sh", "-c", "java -Dserver.port=$PORT -jar target/*.jar"]
